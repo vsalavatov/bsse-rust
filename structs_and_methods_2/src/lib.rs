@@ -1,5 +1,4 @@
 pub mod geometry {
-    use noisy_float::prelude::*;
     use num_traits::Num;
     use std::{convert::TryFrom, fmt::Debug};
 
@@ -111,16 +110,15 @@ pub mod geometry {
         }
     }
 
-    // Float trait is for .sqrt
-    impl<T: Num + Ord + TryFrom<f64> + Float + Copy> Circle<T>
+    impl<T: Num + Ord + TryFrom<f64> + Copy> Circle<T>
     where
         <T as TryFrom<f64>>::Error: Debug,
     {
         pub fn contains(&self, p: &Point<T>) -> bool {
             let dx: T = p.x - self.x;
             let dy: T = p.y - self.y;
-            let dist = (dx * dx + dy * dy).sqrt();
-            dist <= self.r
+            let dist2 = dx * dx + dy * dy;
+            dist2 <= self.r * self.r
         }
 
         pub fn area(&self) -> T {
@@ -128,7 +126,7 @@ pub mod geometry {
         }
     }
 
-    impl<T: Num + Ord + TryFrom<f64> + Float + Copy> Figure<T>
+    impl<T: Num + Ord + TryFrom<f64> + Copy> Figure<T>
     where
         <T as TryFrom<f64>>::Error: Debug, // thanks to the rust-analyzer for this line!
     {
