@@ -1,24 +1,24 @@
 pub mod geometry {
-    use std::fmt::{Debug, Write};
-
     use noisy_float::prelude::*;
+    use num_traits::Num;
+    use std::{convert::TryFrom, fmt::Debug};
 
     #[derive(Hash, PartialEq, Eq)]
-    pub struct Point {
-        pub x: N64,
-        pub y: N64,
+    pub struct Point<T: Num> {
+        pub x: T,
+        pub y: T,
     }
 
-    impl Default for Point {
+    impl<T: Num> Default for Point<T> {
         fn default() -> Self {
             Point {
-                x: n64(0.0),
-                y: n64(0.0),
+                x: T::zero(),
+                y: T::zero(),
             }
         }
     }
 
-    impl Debug for Point {
+    impl<T: Num + Debug> Debug for Point<T> {
         fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
             fmt.debug_struct("Point")
                 .field("x", &self.x)
@@ -28,25 +28,25 @@ pub mod geometry {
     }
 
     #[derive(Hash, PartialEq, Eq)]
-    pub struct Rect {
-        pub xleft: N64,
-        pub xright: N64,
-        pub ylow: N64,
-        pub yhigh: N64,
+    pub struct Rect<T: Num> {
+        pub xleft: T,
+        pub xright: T,
+        pub ylow: T,
+        pub yhigh: T,
     }
 
-    impl Default for Rect {
+    impl<T: Num> Default for Rect<T> {
         fn default() -> Self {
             Rect {
-                xleft: n64(0.0),
-                xright: n64(1.0),
-                ylow: n64(0.0),
-                yhigh: n64(1.0),
+                xleft: T::zero(),
+                xright: T::one(),
+                ylow: T::zero(),
+                yhigh: T::one(),
             }
         }
     }
 
-    impl Debug for Rect {
+    impl<T: Num + Debug> Debug for Rect<T> {
         fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
             fmt.debug_struct("Rectangle")
                 .field("x_left", &self.xleft)
@@ -58,23 +58,23 @@ pub mod geometry {
     }
 
     #[derive(Hash, PartialEq, Eq)]
-    pub struct Circle {
-        pub x: N64,
-        pub y: N64,
-        pub r: N64,
+    pub struct Circle<T: Num> {
+        pub x: T,
+        pub y: T,
+        pub r: T,
     }
 
-    impl Default for Circle {
+    impl<T: Num> Default for Circle<T> {
         fn default() -> Self {
             Circle {
-                x: n64(0.0),
-                y: n64(0.0),
-                r: n64(1.0),
+                x: T::zero(),
+                y: T::zero(),
+                r: T::one(),
             }
         }
     }
 
-    impl Debug for Circle {
+    impl<T: Num + Debug> Debug for Circle<T> {
         fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
             fmt.debug_struct("Circle")
                 .field("x", &self.x)
@@ -85,14 +85,14 @@ pub mod geometry {
     }
 
     #[derive(Hash, PartialEq, Eq)]
-    pub enum Figure {
-        Circle(Circle),
-        Rect(Rect),
+    pub enum Figure<T: Num> {
+        Circle(Circle<T>),
+        Rect(Rect<T>),
     }
 
     // I guess enumeration shouldn't have any default values in this case...
 
-    impl Debug for Figure {
+    impl<T: Num + Debug> Debug for Figure<T> {
         fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
             match &self {
                 Figure::Circle(c) => fmt.write_str("Figure::").and_then(|_| c.fmt(fmt)),
@@ -101,34 +101,38 @@ pub mod geometry {
         }
     }
 
-    impl Rect {
-        pub fn contains(&self, p: &Point) -> bool {
-            return self.xleft <= p.x
-                && p.x <= self.xright
-                && self.ylow <= p.y
-                && p.y <= self.yhigh;
+    impl<T: Num + Ord + Copy> Rect<T> {
+        pub fn contains(&self, p: &Point<T>) -> bool {
+            self.xleft <= p.x && p.x <= self.xright && self.ylow <= p.y && p.y <= self.yhigh
         }
 
-        pub fn area(&self) -> N64 {
-            return (self.xright - self.xleft) * (self.yhigh - self.ylow);
+        pub fn area(&self) -> T {
+            (self.xright - self.xleft) * (self.yhigh - self.ylow)
         }
     }
 
-    impl Circle {
-        pub fn contains(&self, p: &Point) -> bool {
-            let dx: N64 = p.x - self.x;
-            let dy: N64 = p.y - self.y;
+    // Float trait is for .sqrt
+    impl<T: Num + Ord + TryFrom<f64> + Float + Copy> Circle<T>
+    where
+        <T as TryFrom<f64>>::Error: Debug,
+    {
+        pub fn contains(&self, p: &Point<T>) -> bool {
+            let dx: T = p.x - self.x;
+            let dy: T = p.y - self.y;
             let dist = (dx * dx + dy * dy).sqrt();
-            return dist <= self.r;
+            dist <= self.r
         }
 
-        pub fn area(&self) -> N64 {
-            return n64(std::f64::consts::PI) * self.r * self.r;
+        pub fn area(&self) -> T {
+            T::try_from(std::f64::consts::PI).unwrap() * self.r * self.r
         }
     }
 
-    impl Figure {
-        pub fn contains(&self, p: &Point) -> bool {
+    impl<T: Num + Ord + TryFrom<f64> + Float + Copy> Figure<T>
+    where
+        <T as TryFrom<f64>>::Error: Debug, // thanks to the rust-analyzer for this line!
+    {
+        pub fn contains(&self, p: &Point<T>) -> bool {
             match self {
                 Figure::Circle(c) => c.contains(p),
                 Figure::Rect(r) => r.contains(p),

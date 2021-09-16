@@ -31,4 +31,5 @@ name = "structs_and_methods"
 version = "0.1.0"
 dependencies = [
  "noisy_float",
+ "num-traits",
 ]

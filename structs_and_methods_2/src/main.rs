@@ -1,6 +1,12 @@
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
+
 fn main() {
     use noisy_float::prelude::*;
     use structs_and_methods::geometry::*;
+
     let p = Point {
         x: n64(2.0),
         y: n64(2.0),
@@ -46,4 +52,20 @@ fn main() {
         fcirc.contains(&p),
         fcirc.contains(&p2)
     );
+
+    let rect = Rect {
+        xleft: n64(1.0),
+        xright: n64(3.0),
+        ylow: n64(1.0),
+        yhigh: n64(3.0),
+    };
+    let mut hasher = DefaultHasher::new();
+    &rect.hash(&mut hasher);
+    println!("Rect hash is {:x}!", hasher.finish());
+
+    let irect: Rect<i8> = Rect::default();
+    println!("i8 rect: {:?}, area: {:?}", irect, irect.area());
+    let icirc: Circle<i32> = Circle { x: 3, y: 4, r: 5 };
+    println!("i32 circle: {:?}", icirc);
+    // println!("i32 circle area: {}", icirc.area()); // method cannot be called on `structs_and_methods::geometry::Circle<i32>` due to unsatisfied trait bounds
 }

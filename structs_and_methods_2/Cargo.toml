@@ -7,3 +7,4 @@ edition = "2018"
 
 [dependencies]
 noisy_float = "0.2.0"
+num-traits = "0.2"
