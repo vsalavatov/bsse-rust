@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct ColorRGB(pub f32, pub f32, pub f32);
 
 impl ColorRGB {
