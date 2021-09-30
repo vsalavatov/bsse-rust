@@ -1,0 +1,42 @@
+use std::ops::{Add, Mul};
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct ColorRGB(pub f32, pub f32, pub f32);
+
+pub const WHITE: ColorRGB = ColorRGB(1.0, 1.0, 1.0);
+pub const BLACK: ColorRGB = ColorRGB(0.0, 0.0, 0.0);
+pub const RED: ColorRGB = ColorRGB(1.0, 0.0, 0.0);
+pub const GREEN: ColorRGB = ColorRGB(0.0, 1.0, 0.0);
+pub const BLUE: ColorRGB = ColorRGB(0.0, 0.0, 1.0);
+pub const SKYISH: ColorRGB = ColorRGB(0.2, 0.7, 0.8);
+
+impl ColorRGB {
+    pub fn quantize(&self) -> (u8, u8, u8) {
+        (
+            (self.0 * 255.) as u8,
+            (self.1 * 255.) as u8,
+            (self.2 * 255.) as u8,
+        )
+    }
+
+    pub fn normalize(&self) -> ColorRGB {
+        let mx = self.0.max(self.1).max(self.2).max(1.0);
+        ColorRGB(self.0 / mx, self.1 / mx, self.2 / mx)
+    }
+}
+
+impl Mul<f32> for ColorRGB {
+    type Output = ColorRGB;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        ColorRGB(self.0 * rhs, self.1 * rhs, self.2 * rhs)
+    }
+}
+
+impl Add for ColorRGB {
+    type Output = ColorRGB;
+
+    fn add(self, rhs: ColorRGB) -> Self::Output {
+        ColorRGB(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+    }
+}
