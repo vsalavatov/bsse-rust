@@ -1,6 +1,6 @@
 use crate::geometry::{Ray, RayIntersection, Vec3};
 
-use super::{ColorRGB, Material, Scene, SceneEntity, SKYISH};
+use super::{ColorRGB, Material, Scene, SceneEntity, SKYISH, WHITE};
 
 pub struct RayCastingResult {
     pub point: Vec3,
@@ -47,11 +47,19 @@ pub fn cast_ray(ray: Ray, scene: &Scene) -> ColorRGB {
         None => SKYISH,
         Some(rcr) => {
             let mut diffuse_light_intensity: f32 = 0.0;
+            let mut specular_light_intensity: f32 = 0.0;
             for light in &scene.lights {
                 let light_dir = (light.position - rcr.point).normalize();
-                diffuse_light_intensity += light.intensity * light_dir.dot(rcr.normal).max(0.0)
+                diffuse_light_intensity += light.intensity * light_dir.dot(rcr.normal).max(0.0);
+                specular_light_intensity += light_dir
+                    .reflect(rcr.normal)
+                    .dot(ray.direction)
+                    .max(0.0)
+                    .powf(rcr.material.specular_exponent)
+                    * light.intensity;
             }
-            rcr.material.diffuse_color * diffuse_light_intensity
+            rcr.material.diffuse_color * diffuse_light_intensity * rcr.material.diffuse_albedo
+                + WHITE * specular_light_intensity * rcr.material.specular_albedo
         }
     }
 }

@@ -34,6 +34,10 @@ impl Vec3 {
             z: self.x * rhs.y - rhs.x * self.y,
         }
     }
+
+    pub fn reflect(&self, normal: Vec3) -> Vec3 {
+        *self - normal * 2.0 * (self.dot(normal))
+    }
 }
 
 use std::ops::{Add, Mul, Sub};

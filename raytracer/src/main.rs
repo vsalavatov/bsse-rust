@@ -60,14 +60,32 @@ fn main() {
                 material: IVORY,
             },
         ],
-        lights: vec![LightSource {
-            position: Vec3 {
-                x: -20.0,
-                y: 20.0,
-                z: 20.0,
+        lights: vec![
+            LightSource {
+                position: Vec3 {
+                    x: -20.0,
+                    y: 20.0,
+                    z: 20.0,
+                },
+                intensity: 1.5,
             },
-            intensity: 1.5,
-        }],
+            LightSource {
+                position: Vec3 {
+                    x: 30.0,
+                    y: 50.0,
+                    z: -25.0,
+                },
+                intensity: 1.8,
+            },
+            LightSource {
+                position: Vec3 {
+                    x: 30.0,
+                    y: 20.0,
+                    z: 30.0,
+                },
+                intensity: 1.7,
+            },
+        ],
     };
 
     for row in 0..height {
@@ -76,7 +94,7 @@ fn main() {
                 (2.0 * (col as f32 + 0.5) / width as f32 - 1.0) * (fov / 2.0).tan() * aspect_ratio;
             let y = -(2.0 * (row as f32 + 0.5) / height as f32 - 1.0) * (fov / 2.0).tan();
             let dir = Vec3 { x, y, z: -1.0 }.normalize();
-            image[(row, col)] = cast_ray(Ray::new(Vec3::default(), dir), &scene);
+            image[(row, col)] = cast_ray(Ray::new(Vec3::default(), dir), &scene).normalize();
         }
     }
 
