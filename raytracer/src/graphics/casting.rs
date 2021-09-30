@@ -20,6 +20,22 @@ impl RayIntersection<RayCastingResult> for SceneEntity {
                     })
                 })
             }
+            SceneEntity::Checkerboard {
+                geometry,
+                materials,
+                cell_size,
+            } => geometry.intersect_ray(ray).and_then(|pt| {
+                Some(RayCastingResult {
+                    point: pt,
+                    normal: geometry.normal,
+                    material: {
+                        let cx = (pt.x / cell_size).floor() as i64;
+                        let cy = 0 as i64; // (pt.y / cell_size) as i64;
+                        let cz = (pt.z / cell_size).floor() as i64;
+                        materials[(((cx + cy + cz) % 2 + 2) % 2) as usize]
+                    },
+                })
+            }),
         }
     }
 }

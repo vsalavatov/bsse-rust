@@ -6,3 +6,6 @@ pub use sphere::*;
 
 mod ray;
 pub use ray::*;
+
+mod plane;
+pub use plane::*;

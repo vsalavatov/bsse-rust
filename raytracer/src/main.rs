@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use raytracer::{
-    geometry::{Ray, Sphere, Vec3},
+    geometry::{Plane, Ray, Sphere, Vec3},
     graphics::{
         cast_ray, Image, LightSource, Scene, SceneEntity, GLASS, IVORY, MIRROR, RED_RUBBER,
     },
@@ -60,6 +60,18 @@ fn main() {
                     radius: 4.0,
                 },
                 material: MIRROR,
+            },
+            SceneEntity::Checkerboard {
+                geometry: Plane {
+                    normal: Vec3 {
+                        x: 0.07,
+                        y: 1.0,
+                        z: 0.12,
+                    },
+                    shift: 5.0,
+                },
+                materials: [RED_RUBBER, IVORY],
+                cell_size: 0.7,
             },
         ],
         lights: vec![

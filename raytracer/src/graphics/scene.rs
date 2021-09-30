@@ -1,4 +1,4 @@
-use crate::geometry::Sphere;
+use crate::geometry::{Plane, Sphere};
 
 use super::{LightSource, Material};
 
@@ -7,6 +7,11 @@ pub enum SceneEntity {
     Ball {
         geometry: Sphere,
         material: Material,
+    },
+    Checkerboard {
+        geometry: Plane,
+        materials: [Material; 2],
+        cell_size: f32,
     },
 }
 
