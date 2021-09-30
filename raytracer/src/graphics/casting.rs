@@ -1,4 +1,4 @@
-use crate::geometry::{Ray, RayIntersection, Vec3};
+use crate::geometry::{refract, Ray, RayIntersection, Vec3};
 
 use super::{ColorRGB, Material, Scene, SceneEntity, SKYISH, WHITE};
 
@@ -58,6 +58,16 @@ pub fn cast_ray(ray: Ray, scene: &Scene, recursion_limit: usize) -> ColorRGB {
                 recursion_limit - 1,
             );
 
+            let refract_dir =
+                refract(ray.direction, rcr.normal, rcr.material.refraction_index).normalize();
+            let refract_origin =
+                rcr.point + rcr.normal * 1e-3 * refract_dir.dot(rcr.normal).signum();
+            let refract_color = cast_ray(
+                Ray::new(refract_origin, refract_dir),
+                scene,
+                recursion_limit - 1,
+            );
+
             let mut diffuse_light_intensity: f32 = 0.0;
             let mut specular_light_intensity: f32 = 0.0;
             for light in &scene.lights {
@@ -85,6 +95,7 @@ pub fn cast_ray(ray: Ray, scene: &Scene, recursion_limit: usize) -> ColorRGB {
             rcr.material.diffuse_color * diffuse_light_intensity * rcr.material.diffuse_albedo
                 + WHITE * specular_light_intensity * rcr.material.specular_albedo
                 + reflect_color * rcr.material.reflection_albedo
+                + refract_color * rcr.material.refraction_albedo
         }
     }
 }

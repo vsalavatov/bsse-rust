@@ -2,7 +2,9 @@ use std::f32::consts::PI;
 
 use raytracer::{
     geometry::{Ray, Sphere, Vec3},
-    graphics::{cast_ray, Image, LightSource, Scene, SceneEntity, IVORY, MIRROR, RED_RUBBER},
+    graphics::{
+        cast_ray, Image, LightSource, Scene, SceneEntity, GLASS, IVORY, MIRROR, RED_RUBBER,
+    },
 };
 
 fn main() {
@@ -35,7 +37,7 @@ fn main() {
                     },
                     radius: 2.0,
                 },
-                material: MIRROR,
+                material: GLASS,
             },
             SceneEntity::Ball {
                 geometry: Sphere {

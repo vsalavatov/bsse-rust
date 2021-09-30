@@ -7,6 +7,8 @@ pub struct Material {
     pub specular_exponent: f32,
     pub specular_albedo: f32,
     pub reflection_albedo: f32,
+    pub refraction_index: f32,
+    pub refraction_albedo: f32,
 }
 
 pub const IVORY: Material = Material {
@@ -15,6 +17,8 @@ pub const IVORY: Material = Material {
     specular_exponent: 50.0,
     specular_albedo: 0.3,
     reflection_albedo: 0.1,
+    refraction_index: 1.0,
+    refraction_albedo: 0.0,
 };
 pub const RED_RUBBER: Material = Material {
     diffuse_color: ColorRGB(0.3, 0.1, 0.1),
@@ -22,6 +26,8 @@ pub const RED_RUBBER: Material = Material {
     specular_exponent: 10.0,
     specular_albedo: 0.1,
     reflection_albedo: 0.0,
+    refraction_index: 1.0,
+    refraction_albedo: 0.0,
 };
 pub const MIRROR: Material = Material {
     diffuse_color: WHITE,
@@ -29,4 +35,15 @@ pub const MIRROR: Material = Material {
     specular_exponent: 1425.0,
     specular_albedo: 10.0,
     reflection_albedo: 0.8,
+    refraction_index: 1.0,
+    refraction_albedo: 0.0,
+};
+pub const GLASS: Material = Material {
+    diffuse_color: ColorRGB(0.6, 0.7, 0.8),
+    diffuse_albedo: 0.0,
+    specular_exponent: 125.0,
+    specular_albedo: 0.5,
+    reflection_albedo: 0.1,
+    refraction_index: 1.5,
+    refraction_albedo: 0.8,
 };

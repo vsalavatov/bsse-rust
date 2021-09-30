@@ -40,7 +40,26 @@ impl Vec3 {
     }
 }
 
-use std::ops::{Add, Mul, Sub};
+pub fn refract(dir: Vec3, normal: Vec3, refraction_index: f32) -> Vec3 {
+    let mut cosi = dir.dot(normal).neg().clamp(-1.0, 1.0);
+    let mut etai: f32 = 1.0;
+    let mut etat = refraction_index;
+    let mut n = normal;
+    if cosi < 0.0 {
+        cosi = -cosi;
+        std::mem::swap(&mut etai, &mut etat);
+        n = normal * -1.0;
+    }
+    let eta = etai / etat;
+    let k = 1.0 - eta * eta * (1.0 - cosi * cosi);
+    if k < 0.0 {
+        Vec3::default()
+    } else {
+        dir * eta + n * (eta * cosi - k.sqrt())
+    }
+}
+
+use std::ops::{Add, Mul, Neg, Sub};
 impl Add for Vec3 {
     type Output = Vec3;
 
