@@ -14,7 +14,7 @@ impl Image {
             let row: Vec<ColorRGB> = vec![ColorRGB(0.0, 0.0, 0.0); width];
             pixels.push(row);
         }
-        Image { pixels: pixels }
+        Image { pixels }
     }
 
     pub fn height(&self) -> usize {

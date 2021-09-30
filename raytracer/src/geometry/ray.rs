@@ -1,5 +1,6 @@
 use super::{Vec3, Vec3Projection};
 
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy)]
 pub struct Ray {
     pub origin: Vec3,
@@ -11,7 +12,7 @@ pub struct Ray {
 impl Ray {
     pub fn new(origin: Vec3, direction: Vec3) -> Ray {
         Ray {
-            origin: origin,
+            origin,
             direction: direction.normalize(),
             _private: (),
         }
