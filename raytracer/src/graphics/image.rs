@@ -1,4 +1,4 @@
-use super::color::ColorRGB;
+use super::ColorRGB;
 
 pub struct Image {
     pixels: Vec<Vec<ColorRGB>>,
