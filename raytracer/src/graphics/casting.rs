@@ -50,6 +50,21 @@ pub fn cast_ray(ray: Ray, scene: &Scene) -> ColorRGB {
             let mut specular_light_intensity: f32 = 0.0;
             for light in &scene.lights {
                 let light_dir = (light.position - rcr.point).normalize();
+                let light_distance = (light.position - rcr.point).length();
+
+                let shadow_origin = if light_dir.dot(rcr.normal) < 0.0 {
+                    rcr.point - rcr.normal * 1e-3
+                } else {
+                    rcr.point + rcr.normal * 1e-3
+                };
+                if let Some(shadow_intersection) =
+                    scene.intersect_ray(Ray::new(shadow_origin, light_dir))
+                {
+                    if (shadow_intersection.point - shadow_origin).length() < light_distance {
+                        continue;
+                    }
+                }
+
                 diffuse_light_intensity += light.intensity * light_dir.dot(rcr.normal).max(0.0);
                 specular_light_intensity += light_dir
                     .reflect(rcr.normal)
