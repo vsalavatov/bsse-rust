@@ -1,6 +1,6 @@
 use crate::geometry::Sphere;
 
-use super::Material;
+use super::{LightSource, Material};
 
 #[derive(Debug)]
 pub enum SceneEntity {
@@ -13,4 +13,5 @@ pub enum SceneEntity {
 #[derive(Debug)]
 pub struct Scene {
     pub entities: Vec<SceneEntity>,
+    pub lights: Vec<LightSource>,
 }

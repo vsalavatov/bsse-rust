@@ -45,6 +45,13 @@ impl RayIntersection<RayCastingResult> for Scene {
 pub fn cast_ray(ray: Ray, scene: &Scene) -> ColorRGB {
     match scene.intersect_ray(ray) {
         None => SKYISH,
-        Some(rcr) => rcr.material.diffuse_color,
+        Some(rcr) => {
+            let mut diffuse_light_intensity: f32 = 0.0;
+            for light in &scene.lights {
+                let light_dir = (light.position - rcr.point).normalize();
+                diffuse_light_intensity += light.intensity * light_dir.dot(rcr.normal).max(0.0)
+            }
+            rcr.material.diffuse_color * diffuse_light_intensity
+        }
     }
 }

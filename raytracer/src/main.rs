@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use raytracer::{
     geometry::{Ray, Sphere, Vec3},
-    graphics::{cast_ray, Image, Scene, SceneEntity, IVORY, RED_RUBBER},
+    graphics::{cast_ray, Image, LightSource, Scene, SceneEntity, IVORY, RED_RUBBER},
 };
 
 fn main() {
@@ -60,6 +60,14 @@ fn main() {
                 material: IVORY,
             },
         ],
+        lights: vec![LightSource {
+            position: Vec3 {
+                x: -20.0,
+                y: 20.0,
+                z: 20.0,
+            },
+            intensity: 1.5,
+        }],
     };
 
     for row in 0..height {

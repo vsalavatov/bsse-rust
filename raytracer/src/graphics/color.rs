@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ColorRGB(pub f32, pub f32, pub f32);
 
@@ -14,6 +16,18 @@ impl ColorRGB {
             (self.0 * 255.) as u8,
             (self.1 * 255.) as u8,
             (self.2 * 255.) as u8,
+        )
+    }
+}
+
+impl Mul<f32> for ColorRGB {
+    type Output = ColorRGB;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        ColorRGB(
+            (self.0 * rhs).clamp(0.0, 1.0),
+            (self.1 * rhs).clamp(0.0, 1.0),
+            (self.2 * rhs).clamp(0.0, 1.0),
         )
     }
 }

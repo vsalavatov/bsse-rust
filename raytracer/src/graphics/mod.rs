@@ -12,3 +12,6 @@ pub use material::*;
 
 mod scene;
 pub use scene::*;
+
+mod lighting;
+pub use lighting::*;
