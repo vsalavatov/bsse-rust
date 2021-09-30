@@ -42,21 +42,30 @@ impl RayIntersection<RayCastingResult> for Scene {
     }
 }
 
-pub fn cast_ray(ray: Ray, scene: &Scene) -> ColorRGB {
+pub fn cast_ray(ray: Ray, scene: &Scene, recursion_limit: usize) -> ColorRGB {
+    if recursion_limit == 0 {
+        return SKYISH;
+    }
     match scene.intersect_ray(ray) {
         None => SKYISH,
         Some(rcr) => {
+            let reflect_dir = ray.direction.reflect(rcr.normal);
+            let reflect_origin =
+                rcr.point + rcr.normal * 1e-3 * reflect_dir.dot(rcr.normal).signum();
+            let reflect_color = cast_ray(
+                Ray::new(reflect_origin, reflect_dir),
+                scene,
+                recursion_limit - 1,
+            );
+
             let mut diffuse_light_intensity: f32 = 0.0;
             let mut specular_light_intensity: f32 = 0.0;
             for light in &scene.lights {
                 let light_dir = (light.position - rcr.point).normalize();
                 let light_distance = (light.position - rcr.point).length();
 
-                let shadow_origin = if light_dir.dot(rcr.normal) < 0.0 {
-                    rcr.point - rcr.normal * 1e-3
-                } else {
-                    rcr.point + rcr.normal * 1e-3
-                };
+                let shadow_origin =
+                    rcr.point + rcr.normal * 1e-3 * light_dir.dot(rcr.normal).signum();
                 if let Some(shadow_intersection) =
                     scene.intersect_ray(Ray::new(shadow_origin, light_dir))
                 {
@@ -75,6 +84,7 @@ pub fn cast_ray(ray: Ray, scene: &Scene) -> ColorRGB {
             }
             rcr.material.diffuse_color * diffuse_light_intensity * rcr.material.diffuse_albedo
                 + WHITE * specular_light_intensity * rcr.material.specular_albedo
+                + reflect_color * rcr.material.reflection_albedo
         }
     }
 }

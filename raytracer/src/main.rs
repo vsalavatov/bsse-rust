@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use raytracer::{
     geometry::{Ray, Sphere, Vec3},
-    graphics::{cast_ray, Image, LightSource, Scene, SceneEntity, IVORY, RED_RUBBER},
+    graphics::{cast_ray, Image, LightSource, Scene, SceneEntity, IVORY, MIRROR, RED_RUBBER},
 };
 
 fn main() {
@@ -35,7 +35,7 @@ fn main() {
                     },
                     radius: 2.0,
                 },
-                material: RED_RUBBER,
+                material: MIRROR,
             },
             SceneEntity::Ball {
                 geometry: Sphere {
@@ -57,7 +57,7 @@ fn main() {
                     },
                     radius: 4.0,
                 },
-                material: IVORY,
+                material: MIRROR,
             },
         ],
         lights: vec![
@@ -94,7 +94,7 @@ fn main() {
                 (2.0 * (col as f32 + 0.5) / width as f32 - 1.0) * (fov / 2.0).tan() * aspect_ratio;
             let y = -(2.0 * (row as f32 + 0.5) / height as f32 - 1.0) * (fov / 2.0).tan();
             let dir = Vec3 { x, y, z: -1.0 }.normalize();
-            image[(row, col)] = cast_ray(Ray::new(Vec3::default(), dir), &scene).normalize();
+            image[(row, col)] = cast_ray(Ray::new(Vec3::default(), dir), &scene, 4).normalize();
         }
     }
 
