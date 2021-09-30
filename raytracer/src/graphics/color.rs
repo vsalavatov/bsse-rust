@@ -6,6 +6,7 @@ pub const BLACK: ColorRGB = ColorRGB(0.0, 0.0, 0.0);
 pub const RED: ColorRGB = ColorRGB(1.0, 0.0, 0.0);
 pub const GREEN: ColorRGB = ColorRGB(0.0, 1.0, 0.0);
 pub const BLUE: ColorRGB = ColorRGB(0.0, 0.0, 1.0);
+pub const SKYISH: ColorRGB = ColorRGB(0.2, 0.7, 0.8);
 
 impl ColorRGB {
     pub fn quantize(&self) -> (u8, u8, u8) {

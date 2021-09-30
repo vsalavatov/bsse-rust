@@ -38,6 +38,6 @@ impl Vec3Projection for Ray {
     }
 }
 
-pub trait RayIntersection {
-    fn intersect_ray(&self, ray: Ray) -> Option<Vec3>;
+pub trait RayIntersection<Out = Vec3> {
+    fn intersect_ray(&self, ray: Ray) -> Option<Out>;
 }
