@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, DeriveInput, GenericArgument, PathArguments, Type};
 
 #[proc_macro_derive(Builder)]
 pub fn derive(input: TokenStream) -> TokenStream {
@@ -19,24 +19,57 @@ pub fn derive(input: TokenStream) -> TokenStream {
         for field in data.fields {
             let ident = field.ident.unwrap();
             let builder_field = Ident::new(&format!("{}_value", &ident), Span::call_site());
-            let ty = field.ty;
-            builder_fields.push(quote! {
-                #builder_field: std::option::Option<#ty>,
-            });
-            builder_setters.push(quote! {
-                pub fn #ident(&mut self, value: #ty) -> &mut Self {
-                    self.#builder_field = Some(value);
-                    self
+            let ty = &field.ty;
+
+            let mut optional_generic_type: Option<&Type> = None;
+            // check if ty is optional
+            if let Type::Path(typ) = ty {
+                if typ.path.segments[0].ident == "Option" {
+                    if let PathArguments::AngleBracketed(ab) = &typ.path.segments[0].arguments {
+                        if let GenericArgument::Type(ttt) = &ab.args[0] {
+                            optional_generic_type = Some(ttt)
+                        } else {
+                            unimplemented!();
+                        }
+                    } else {
+                        unimplemented!();
+                    }
                 }
-            });
-            field_checkers.push(quote! {
-                if let None = self.#builder_field {
-                    return Err(String::from("#ident was not set").into());
-                }
-            });
-            build_pass_vars.push(quote! {
-                #ident: self.#builder_field.take().unwrap(),
-            })
+            }
+
+            if optional_generic_type.is_some() {
+                builder_fields.push(quote! {
+                    #builder_field: #ty,
+                });
+                let tt = optional_generic_type.unwrap();
+                builder_setters.push(quote! {
+                    pub fn #ident(&mut self, value: #tt) -> &mut Self {
+                        self.#builder_field = Some(value);
+                        self
+                    }
+                });
+                build_pass_vars.push(quote! {
+                    #ident: self.#builder_field.take(),
+                })
+            } else {
+                builder_fields.push(quote! {
+                    #builder_field: std::option::Option<#ty>,
+                });
+                builder_setters.push(quote! {
+                    pub fn #ident(&mut self, value: #ty) -> &mut Self {
+                        self.#builder_field = Some(value);
+                        self
+                    }
+                });
+                field_checkers.push(quote! {
+                    if let None = self.#builder_field {
+                        return Err(String::from("#ident was not set").into());
+                    }
+                });
+                build_pass_vars.push(quote! {
+                    #ident: self.#builder_field.take().unwrap(),
+                });
+            }
         }
 
         let expanded = quote! {
