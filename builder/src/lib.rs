@@ -51,13 +51,22 @@ pub fn derive(input: TokenStream) -> TokenStream {
             // check `each` mode
             for attr in field.attrs {
                 if attr.path.segments[0].ident == "builder" {
-                    let meta_list = if let Meta::List(ml) = attr.parse_meta().unwrap() {
+                    let meta = attr.parse_meta().unwrap();
+                    let meta_list = if let Meta::List(ml) = &meta {
                         ml
                     } else {
                         unimplemented!()
                     };
                     each_name = Some(if let NestedMeta::Meta(submeta) = &meta_list.nested[0] {
                         if let Meta::NameValue(nv) = submeta {
+                            if nv.path.segments[0].ident != "each" {
+                                let err = syn::Error::new_spanned(
+                                    meta,
+                                    "expected `builder(each = \"...\")`",
+                                )
+                                .to_compile_error();
+                                return TokenStream::from(err);
+                            }
                             nv.lit.to_owned()
                         } else {
                             unimplemented!();
