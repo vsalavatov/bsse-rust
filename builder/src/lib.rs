@@ -23,9 +23,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
             let builder_field = Ident::new(&format!("{}_value", &ident), Span::call_site());
             let ty = &field.ty;
 
-            let mut optional_generic_type: Option<Type> = None;
-            let mut each_name: Option<Lit> = None;
-            let mut each_type: Option<Type> = None;
+            let mut optional_generic_type: std::option::Option<Type> = std::option::Option::None;
+            let mut each_name: std::option::Option<Lit> = std::option::Option::None;
+            let mut each_type: std::option::Option<Type> = std::option::Option::None;
 
             // check if ty is optional
             if let Type::Path(typ) = ty {
@@ -35,10 +35,10 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     if let PathArguments::AngleBracketed(ab) = &typ.path.segments[0].arguments {
                         if let GenericArgument::Type(ttt) = &ab.args[0] {
                             if is_optional {
-                                optional_generic_type = Some(ttt.to_owned())
+                                optional_generic_type = std::option::Option::Some(ttt.to_owned())
                             } else {
                                 // is_vec
-                                each_type = Some(ttt.to_owned())
+                                each_type = std::option::Option::Some(ttt.to_owned())
                             }
                         } else {
                             unimplemented!();
@@ -57,23 +57,25 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     } else {
                         unimplemented!()
                     };
-                    each_name = Some(if let NestedMeta::Meta(submeta) = &meta_list.nested[0] {
-                        if let Meta::NameValue(nv) = submeta {
-                            if nv.path.segments[0].ident != "each" {
-                                let err = syn::Error::new_spanned(
-                                    meta,
-                                    "expected `builder(each = \"...\")`",
-                                )
-                                .to_compile_error();
-                                return TokenStream::from(err);
+                    each_name = std::option::Option::Some(
+                        if let NestedMeta::Meta(submeta) = &meta_list.nested[0] {
+                            if let Meta::NameValue(nv) = submeta {
+                                if nv.path.segments[0].ident != "each" {
+                                    let err = syn::Error::new_spanned(
+                                        meta,
+                                        "expected `builder(each = \"...\")`",
+                                    )
+                                    .to_compile_error();
+                                    return TokenStream::from(err);
+                                }
+                                nv.lit.to_owned()
+                            } else {
+                                unimplemented!();
                             }
-                            nv.lit.to_owned()
                         } else {
-                            unimplemented!();
-                        }
-                    } else {
-                        unimplemented!()
-                    });
+                            unimplemented!()
+                        },
+                    );
                 } else {
                     unimplemented!();
                 }
@@ -86,7 +88,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 let tt = optional_generic_type.unwrap();
                 builder_setters.push(quote! {
                     pub fn #ident(&mut self, value: #tt) -> &mut Self {
-                        self.#builder_field = Some(value);
+                        self.#builder_field = std::option::Option::Some(value);
                         self
                     }
                 });
@@ -127,12 +129,12 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 });
                 builder_setters.push(quote! {
                     pub fn #ident(&mut self, value: #ty) -> &mut Self {
-                        self.#builder_field = Some(value);
+                        self.#builder_field = std::option::Option::Some(value);
                         self
                     }
                 });
                 field_checkers.push(quote! {
-                    if let None = self.#builder_field {
+                    if let std::option::Option::None = self.#builder_field {
                         return Err(String::from("#ident was not set").into());
                     }
                 });
@@ -149,9 +151,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
 
             impl #builder_name {
-                pub fn build(&mut self) -> Result<#struct_name, Box<dyn std::error::Error>> {
+                pub fn build(&mut self) -> std::result::Result<#struct_name, std::boxed::Box<dyn std::error::Error>> {
                     #(#field_checkers)*
-                    Ok(#struct_name {
+                    std::result::Result::Ok(#struct_name {
                         #(#build_pass_vars)*
                     })
                 }
