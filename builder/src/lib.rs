@@ -12,6 +12,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     let mut builder_fields: Vec<TokenStream2> = vec![];
     let mut builder_setters: Vec<TokenStream2> = vec![];
+    let mut field_checkers: Vec<TokenStream2> = vec![];
+    let mut build_pass_vars: Vec<TokenStream2> = vec![];
 
     if let syn::Data::Struct(data) = input.data {
         for field in data.fields {
@@ -27,6 +29,14 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     self
                 }
             });
+            field_checkers.push(quote! {
+                if let None = self.#builder_field {
+                    return Err(String::from("#ident was not set").into());
+                }
+            });
+            build_pass_vars.push(quote! {
+                #ident: self.#builder_field.take().unwrap(),
+            })
         }
 
         let expanded = quote! {
@@ -36,6 +46,13 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
 
             impl #builder_name {
+                pub fn build(&mut self) -> Result<#struct_name, Box<dyn std::error::Error>> {
+                    #(#field_checkers)*
+                    Ok(#struct_name {
+                        #(#build_pass_vars)*
+                    })
+                }
+
                 #(#builder_setters)*
             }
 
