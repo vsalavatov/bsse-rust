@@ -1,9 +1,11 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, GenericArgument, PathArguments, Type};
+use syn::{
+    parse_macro_input, DeriveInput, GenericArgument, Lit, Meta, NestedMeta, PathArguments, Type,
+};
 
-#[proc_macro_derive(Builder)]
+#[proc_macro_derive(Builder, attributes(builder))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -21,19 +23,50 @@ pub fn derive(input: TokenStream) -> TokenStream {
             let builder_field = Ident::new(&format!("{}_value", &ident), Span::call_site());
             let ty = &field.ty;
 
-            let mut optional_generic_type: Option<&Type> = None;
+            let mut optional_generic_type: Option<Type> = None;
+            let mut each_name: Option<Lit> = None;
+            let mut each_type: Option<Type> = None;
+
             // check if ty is optional
             if let Type::Path(typ) = ty {
-                if typ.path.segments[0].ident == "Option" {
+                let is_optional = typ.path.segments[0].ident == "Option";
+                let is_vec = typ.path.segments[0].ident == "Vec";
+                if is_optional || is_vec {
                     if let PathArguments::AngleBracketed(ab) = &typ.path.segments[0].arguments {
                         if let GenericArgument::Type(ttt) = &ab.args[0] {
-                            optional_generic_type = Some(ttt)
+                            if is_optional {
+                                optional_generic_type = Some(ttt.to_owned())
+                            } else {
+                                // is_vec
+                                each_type = Some(ttt.to_owned())
+                            }
                         } else {
                             unimplemented!();
                         }
                     } else {
                         unimplemented!();
                     }
+                }
+            }
+            // check `each` mode
+            for attr in field.attrs {
+                if attr.path.segments[0].ident == "builder" {
+                    let meta_list = if let Meta::List(ml) = attr.parse_meta().unwrap() {
+                        ml
+                    } else {
+                        unimplemented!()
+                    };
+                    each_name = Some(if let NestedMeta::Meta(submeta) = &meta_list.nested[0] {
+                        if let Meta::NameValue(nv) = submeta {
+                            nv.lit.to_owned()
+                        } else {
+                            unimplemented!();
+                        }
+                    } else {
+                        unimplemented!()
+                    });
+                } else {
+                    unimplemented!();
                 }
             }
 
@@ -51,6 +84,34 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 build_pass_vars.push(quote! {
                     #ident: self.#builder_field.take(),
                 })
+            } else if each_name.is_some() {
+                builder_fields.push(quote! {
+                    #builder_field: #ty,
+                });
+                let name = each_name.unwrap();
+                if let Lit::Str(namestr) = name {
+                    let tt = each_type.unwrap();
+                    let name_ident = Ident::new(&namestr.value(), Span::call_site());
+                    if namestr.value() != ident.to_string() {
+                        builder_setters.push(quote! {
+                            pub fn #ident(&mut self, value: #ty) -> &mut Self {
+                                self.#builder_field = value;
+                                self
+                            }
+                        });
+                    }
+                    builder_setters.push(quote! {
+                        pub fn #name_ident(&mut self, value: #tt) -> &mut Self {
+                            self.#builder_field.push(value);
+                            self
+                        }
+                    });
+                } else {
+                    unimplemented!();
+                }
+                build_pass_vars.push(quote! {
+                    #ident: std::mem::replace(&mut self.#builder_field, std::vec::Vec::new()),
+                });
             } else {
                 builder_fields.push(quote! {
                     #builder_field: std::option::Option<#ty>,
